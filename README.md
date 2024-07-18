@@ -25,9 +25,12 @@ This script automates the process of updating the Elden Ring Seamless Coop mod. 
 ### Alternative:
 
  If you find the following steps difficult, open the terminal in the folder path of the .ps1 file and simply type:
-    ```powershell
-    .\er_coop_updater_mod.ps1
-    ```
+
+   ```powershell
+   .\er_coop_updater_mod.ps1
+   ```
+
+   
 ### Step 1: Install Win-PS2EXE
 
 1. **Open PowerShell as Administrator**:
