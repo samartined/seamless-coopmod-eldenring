@@ -1,5 +1,5 @@
 # Importar el archivo de configuración
-$configPath = "C:\Users\edgar\Documents\Dev\scripts\seamless-coopmod-eldenring\config.psd1"
+$configPath = ".\config.psd1"
 $config = Import-PowerShellDataFile -Path $configPath
 
 # Ruta de destino
