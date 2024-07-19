@@ -7,15 +7,19 @@ function main {
 
     # Configuration
     $config = @{
-        ServerPassword = "YourSecurePassword123"  # Replace with your actual password
+        ServerPassword = "123456Pi."  # Replace with your actual password
     }
     Write-Debug "Server password set!"
 
-    # Run the update version function with the password parameter
-    update_version -serverPassword $config.ServerPassword
+    # Define the game path
+    $global:game_path = "D:\SteamLibrary\steamapps\common\ELDEN RING\Game"
+    Write-Debug "Game path set to $game_path"
+
+    # Run the update version function with the password and game path parameters
+    update_version -serverPassword $config.ServerPassword -gamePath $game_path
 
     # Run the game execution function
-    ejecute_game
+    ejecute_game -gamePath $game_path
 }
 
 function Get-ReleaseInfo {
@@ -119,13 +123,14 @@ function Create-Shortcut {
 
 function update_version {
     param (
-        [string]$serverPassword
+        [string]$serverPassword,
+        [string]$gamePath
     )
     try {
         Write-Debug "Update version function started"
         
         # Config paths and URLs
-        $destPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
+        $destPath = $gamePath
         $seamlessCoopPath = "$destPath\SeamlessCoop"
         $settingsFilePath = "$seamlessCoopPath\ersc_settings.ini"
         $apiUrl = "https://api.github.com/repos/LukeYui/EldenRingSeamlessCoopRelease/releases/latest"
@@ -167,9 +172,13 @@ function update_version {
 }
 
 function ejecute_game {
+    param (
+        [string]$gamePath
+    )
+
     # Define the path to the game executable
-    $gameExecutable = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game\ersc_launcher.exe"
-    $startPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
+    $gameExecutable = "$gamePath\ersc_launcher.exe"
+    $startPath = $gamePath
 
     # Check if the game executable exists
     if (-Not (Test-Path $gameExecutable)) {
@@ -186,9 +195,6 @@ function ejecute_game {
         Write-Error "Failed to start the game: $_"
     }
 }
-
-
-
 
 # Call the main function
 main
