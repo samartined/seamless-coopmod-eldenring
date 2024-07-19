@@ -156,7 +156,7 @@ function update_version {
         Create-Shortcut -targetPath "$destPath\ersc_launcher.exe" -shortcutPath $desktopPath -startInPath $destPath
 
         # Success message
-        [System.Windows.Forms.MessageBox]::Show("Updated to version: $version.`nStart game?", "Starting Server: $serverPassword", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        [System.Windows.Forms.MessageBox]::Show("Updated to version: $version.`nStart game", "Starting Server: $serverPassword", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
         Write-Debug "Update version function completed successfully"
     } catch {
         # Error message
@@ -167,8 +167,28 @@ function update_version {
 }
 
 function ejecute_game {
-    Write-Output "Game execution function called."
+    # Define the path to the game executable
+    $gameExecutable = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game\ersc_launcher.exe"
+    $startPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
+
+    # Check if the game executable exists
+    if (-Not (Test-Path $gameExecutable)) {
+        Write-Output "Game executable not found at $gameExecutable"
+        return
+    }
+
+    try {
+        # Run the game executable with the start path set
+        Write-Output "Starting the game..."
+        Start-Process -FilePath $gameExecutable -WorkingDirectory $startPath
+        Write-Output "Game started successfully."
+    } catch {
+        Write-Error "Failed to start the game: $_"
+    }
 }
+
+
+
 
 # Call the main function
 main
