@@ -9,37 +9,31 @@ foreach ($module in $modules) {
     }
 }
 
-# Define paths for the scripts and config file
+# Define paths for the script and output executable
 $scriptPath = "eldencoop-updater.ps1"
-$configPath = "config.psd1"
-$updatedScriptPath = "eldencoop-updater_with_config.ps1"
 $outputExePath = "eldencoop-updater.exe"
 
-# Function to convert a file to a Base64 string
-function Convert-FileToBase64 {
-    param (
-        [string]$filePath
-    )
-    $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-    $base64String = [System.Convert]::ToBase64String($fileBytes)
-    return $base64String
+# Configuration values previously in config.psd1
+$config = @{
+    ServerPassword = "your_password_here"  # Replace with your actual password
 }
-
-# Convert the config.psd1 file to a Base64 string
-$configBase64 = Convert-FileToBase64 -filePath $configPath
 
 # Read the original script content
 $scriptContent = Get-Content -Path $scriptPath -Raw
 
-# Embed the Base64 string in the script
-$base64Placeholder = '$ConfigBase64 = ""'
-$base64Embedded = "`$ConfigBase64 = '$configBase64'"
-$updatedScriptContent = $scriptContent -replace [regex]::Escape($base64Placeholder), $base64Embedded
+# Embed the configuration values into the script
+$configPlaceholder = '$config = @{}'
+$configEmbedded = "`$config = @{`n    ServerPassword = `"your_password_here`"  # Replace with your actual password`n}"
+$updatedScriptContent = $scriptContent -replace [regex]::Escape($configPlaceholder), $configEmbedded
 
-# Save the updated script
-Set-Content -Path $updatedScriptPath -Value $updatedScriptContent
+# Save the updated script to a temporary file
+$tempUpdatedScriptPath = [System.IO.Path]::GetTempFileName()
+Set-Content -Path $tempUpdatedScriptPath -Value $updatedScriptContent
 
 # Convert the updated script to an executable using PS2EXE
-Invoke-Expression -Command "Invoke-ps2exe $updatedScriptPath $outputExePath"
+Invoke-Expression -Command "Invoke-ps2exe $tempUpdatedScriptPath $outputExePath"
+
+# Clean up the temporary file
+Remove-Item -Path $tempUpdatedScriptPath
 
 Write-Host "Conversion complete. The executable is saved as $outputExePath"
