@@ -1,9 +1,9 @@
 @{
-    # Este es un archivo de configuración de PowerShell Data File (.psd1)
-    # Puedes definir varias configuraciones y variables aquí.
+    # This is a PowerShell Data File (.psd1) configuration file
+    # You can define various settings and variables here.
 
-    # Contraseña del servidor para el archivo ersc_settings.ini
-    ServerPassword = "TuContraseñaSegura123"
+    # Server password for the ersc_settings.ini file
+    ServerPassword = "YourSecurePassword123"
 
-    # Otras configuraciones pueden ser añadidas aquí según sea necesario.
+    # Additional configurations can be added here as needed.
 }
