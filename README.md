@@ -25,10 +25,12 @@ This script automates the process of updating the Elden Ring Seamless Coop mod. 
 ## How compile exe
 
 1. **Modify the Script Path**:
-   Update the `ServerPassword` in the config.psd1 file:
+   Update the `ServerPassword` in the eldencoop-updater.psd1 file:
 
    ```powershell
-   ServerPassword = "YourSecurePassword123"
+        $config = @{
+            ServerPassword = "YourSecurePassword123"  # Replace with your actual password
+        }
    ```
 
 2. **Convert the Script to an Executable**:
