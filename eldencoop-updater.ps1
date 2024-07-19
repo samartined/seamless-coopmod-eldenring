@@ -90,6 +90,21 @@ function Update-SettingsFile {
     Write-Debug "Settings file updated with new password"
 }
 
+function Create-Shortcut {
+    param (
+        [string]$targetPath,
+        [string]$shortcutPath,
+        [string]$startInPath
+    )
+    Write-Debug "Creating shortcut for $targetPath at $shortcutPath"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = $targetPath
+    $shortcut.WorkingDirectory = $startInPath
+    $shortcut.Save()
+    Write-Debug "Shortcut created successfully"
+}
+
 function Main {
     try {
         Write-Debug "Main function started"
@@ -123,6 +138,11 @@ function Main {
 
         # Update settings file
         Update-SettingsFile -filePath $settingsFilePath -password $config.ServerPassword
+
+        # Create shortcut on desktop
+        $shortcutName = "EldenCoop$version.lnk"
+        $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), $shortcutName)
+        Create-Shortcut -targetPath "$destPath\ersc_launcher.exe" -shortcutPath $desktopPath -startInPath $destPath
 
         # Success message
         Write-Output "Update completed successfully. Updated version: $version."
