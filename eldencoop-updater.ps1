@@ -1,3 +1,23 @@
+function main {
+    # Load Windows Forms assembly for message boxes
+    Add-Type -AssemblyName System.Windows.Forms
+
+    # Enable script debugging
+    $DebugPreference = "Continue"
+
+    # Configuration
+    $config = @{
+        ServerPassword = "YourSecurePassword123"  # Replace with your actual password
+    }
+    Write-Debug "Server password set!"
+
+    # Run the update version function with the password parameter
+    update_version -serverPassword $config.ServerPassword
+
+    # Run the game execution function
+    ejecute_game
+}
+
 function Get-ReleaseInfo {
     param (
         [string]$apiUrl
@@ -97,15 +117,12 @@ function Create-Shortcut {
     Write-Debug "Shortcut created successfully"
 }
 
-function Main {
+function update_version {
+    param (
+        [string]$serverPassword
+    )
     try {
-        Write-Debug "Main function started"
-        # Configuration values previously in config.psd1
-        $config = @{
-            ServerPassword = "YourSecurePassword123"  # Replace with your actual password
-        }
-        Write-Debug "Server password set!"
-        
+        Write-Debug "Update version function started"
         
         # Config paths and URLs
         $destPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
@@ -117,7 +134,6 @@ function Main {
         
         Write-Debug "Paths and URLs configured"
         
-
         # Get release info
         $releaseInfo = Get-ReleaseInfo -apiUrl $apiUrl
         $version = $releaseInfo.tag_name
@@ -132,7 +148,7 @@ function Main {
         Copy-Folder -source "$tempExtractPath\SeamlessCoop" -destination $seamlessCoopPath
 
         # Update settings file
-        Update-SettingsFile -filePath $settingsFilePath -password $config.ServerPassword
+        Update-SettingsFile -filePath $settingsFilePath -password $serverPassword
 
         # Create shortcut on desktop
         $shortcutName = "EldenCoop$version.lnk"
@@ -140,25 +156,42 @@ function Main {
         Create-Shortcut -targetPath "$destPath\ersc_launcher.exe" -shortcutPath $desktopPath -startInPath $destPath
 
         # Success message
-        Write-Output "Update completed successfully. Updated version: $version."
-        [System.Windows.Forms.MessageBox]::Show("Update completed successfully. Updated version: $version.", "Update Status", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-        Write-Debug "Main function completed successfully"
+        [System.Windows.Forms.MessageBox]::Show("Updated to version: $version.`nStart game", "Starting Server: $serverPassword", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        Write-Debug "Update version function completed successfully"
     } catch {
         # Error message
         Write-Error "An unexpected error occurred: $_"
-        [System.Windows.Forms.MessageBox]::Show("An unexpected error occurred: $_", "Update Status", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
-        Write-Debug "Main function encountered an error: $_"
+        [System.Windows.Forms.MessageBox]::Show("An unexpected error occurred: $_", "Starting Server: $serverPassword", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        Write-Debug "Update version function encountered an error: $_"
     }
 }
 
-# Load Windows Forms assembly for message boxes
-Add-Type -AssemblyName System.Windows.Forms
+function ejecute_game {
+    # Define the path to the game executable
+    $gameExecutable = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game\ersc_launcher.exe"
+    $startPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
 
-# Enable script debugging
-$DebugPreference = "Continue"
+    # Check if the game executable exists
+    if (-Not (Test-Path $gameExecutable)) {
+        Write-Output "Game executable not found at $gameExecutable"
+        return
+    }
 
-# Run the main function
-Main
+    try {
+        # Run the game executable with the start path set
+        Write-Output "Starting the game..."
+        Start-Process -FilePath $gameExecutable -WorkingDirectory $startPath
+        Write-Output "Game started successfully."
+    } catch {
+        Write-Error "Failed to start the game: $_"
+    }
+}
+
+
+
+
+# Call the main function
+main
 
 # Close script
 exit
