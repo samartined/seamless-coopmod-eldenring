@@ -1,4 +1,4 @@
-# Elden Ring Seamless Coop Updater V1.7.9-3
+# Elden Ring Seamless Coop Updater V1.7.9-6
 
 This script automates the process of updating the Elden Ring Seamless Coop mod. It fetches the latest release from GitHub, downloads and extracts the necessary files, and updates the game directory accordingly.
 
