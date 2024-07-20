@@ -1,11 +1,3 @@
-function Import-Config {
-    param (
-        [string]$configPath
-    )
-    Write-Debug "Importing configuration from $configPath"
-    return Import-PowerShellDataFile -Path $configPath
-}
-
 function Get-ReleaseInfo {
     param (
         [string]$apiUrl
@@ -108,9 +100,14 @@ function Create-Shortcut {
 function Main {
     try {
         Write-Debug "Main function started"
+        # Configuration values previously in config.psd1
+        $config = @{
+            ServerPassword = "YourSecurePassword123"  # Replace with your actual password
+        }
+        Write-Debug "Server password set!"
+        
         
         # Config paths and URLs
-        $configPath = ".\config.psd1"
         $destPath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
         $seamlessCoopPath = "$destPath\SeamlessCoop"
         $settingsFilePath = "$seamlessCoopPath\ersc_settings.ini"
@@ -120,8 +117,6 @@ function Main {
         
         Write-Debug "Paths and URLs configured"
         
-        # Import config
-        $config = Import-Config -configPath $configPath
 
         # Get release info
         $releaseInfo = Get-ReleaseInfo -apiUrl $apiUrl
