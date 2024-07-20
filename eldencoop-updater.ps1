@@ -6,24 +6,39 @@ function main {
     $DebugPreference = "Continue"
 
     # Configuration
+    $configFileName = "elden_coop.json"
     $config = @{
         ServerPassword = "123456Pi."  # Replace with your actual password
+        GamePath = ""
     }
-    Write-Debug "Server password set!"
-
-    # Show form to select game path
-    $global:game_path = Show-Form
-    if ($global:game_path) {
-        Write-Debug "Game path set to $global:game_path"
-
-        # Run the update version function with the password and game path parameters
-        update_version -serverPassword $config.ServerPassword -gamePath $global:game_path
-
-        # Run the game execution function
-        ejecute_game -gamePath $global:game_path
+    if (Test-Path $configFileName) {
+        $config = Get-Content -Path $configFileName | ConvertFrom-Json
+        Write-Debug "Configuration loaded from $configFileName"
     } else {
-        Write-Output "Game path selection was canceled or no path was entered."
+        Write-Debug "No existing configuration file found. Using default configuration."
     }
+
+    # Show form to select game path if not already set
+    if (-not $config.GamePath) {
+        $global:game_path = Show-Form
+        if ($global:game_path) {
+            $config.GamePath = $global:game_path
+            $config | ConvertTo-Json | Set-Content -Path $configFileName
+            Write-Debug "Game path set and saved to $configFileName"
+        } else {
+            Write-Output "Game path selection was canceled or no path was entered."
+            return
+        }
+    } else {
+        $global:game_path = $config.GamePath
+        Write-Debug "Using saved game path: $global:game_path"
+    }
+
+    # Run the update version function with the password and game path parameters
+    update_version -serverPassword $config.ServerPassword -gamePath $global:game_path
+
+    # Run the game execution function
+    ejecute_game -gamePath $global:game_path
 }
 
 function Show-Form {
