@@ -101,7 +101,7 @@ function Show-MainMenu {
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
         Save-Config -config $config -configFileName $configFileName
-        Update-Version -config $config -configFileName $configFileName
+        Update-Version -config $config -configFileName $configFileName -labelVersion $labelVersion
     })
     $form.Controls.Add($buttonUpdate)
     
@@ -133,7 +133,8 @@ function Show-MainMenu {
 function Update-Version {
     param (
         [hashtable]$config,
-        [string]$configFileName
+        [string]$configFileName,
+        [System.Windows.Forms.Label]$labelVersion
     )
     try {
         $gamePath = $config.GamePath
@@ -156,6 +157,9 @@ function Update-Version {
 
         $config.Version = $version
         Save-Config -config $config -configFileName $configFileName
+
+        # Update the version label
+        $labelVersion.Text = "Version: " + $config.Version
 
         $shortcutName = "EldenCoop$version.lnk"
         $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), $shortcutName)
