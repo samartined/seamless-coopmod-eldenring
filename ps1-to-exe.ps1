@@ -11,7 +11,7 @@ foreach ($module in $modules) {
 
 # Define paths for the script, output executable, and icon
 $scriptPath = "eldencoop-updater.ps1"
-$outputExePath = "eldencoop-updater.exe"
+$outputExePath = "eldencoop.exe"
 $iconPath = "eldencoop.ico"  # Replace with the actual path to your .ico file
 
 # Convert the updated script to an executable using PS2EXE with no console and an icon
