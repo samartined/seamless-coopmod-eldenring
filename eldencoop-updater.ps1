@@ -11,8 +11,8 @@ function Initialize-Config {
     
     $defaultConfig = @{
         GamePath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
-        ServerPassword = "123456Pi."
-        Version = "1.0"
+        ServerPassword = "YourServerPassword"
+        Version = "-1"
     }
 
     if (-Not (Test-Path $configFileName)) {
@@ -57,9 +57,21 @@ function Show-MainMenu {
     
     $textboxGamePath = New-Object System.Windows.Forms.TextBox
     $textboxGamePath.Text = $config.GamePath
-    $textboxGamePath.Size = New-Object System.Drawing.Size(350, 20)
+    $textboxGamePath.Size = New-Object System.Drawing.Size(300, 20)
     $textboxGamePath.Location = New-Object System.Drawing.Point(20, 50)
     $form.Controls.Add($textboxGamePath)
+    
+    $buttonBrowse = New-Object System.Windows.Forms.Button
+    $buttonBrowse.Text = "Browse..."
+    $buttonBrowse.Size = New-Object System.Drawing.Size(50, 20)
+    $buttonBrowse.Location = New-Object System.Drawing.Point(330, 50)
+    $buttonBrowse.Add_Click({
+        $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+        if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $textboxGamePath.Text = $folderBrowser.SelectedPath
+        }
+    })
+    $form.Controls.Add($buttonBrowse)
     
     $labelServerPassword = New-Object System.Windows.Forms.Label
     $labelServerPassword.Text = "Server Password:"
