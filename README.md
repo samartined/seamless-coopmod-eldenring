@@ -4,17 +4,12 @@ This script automates the process of updating the Elden Ring Seamless Coop mod. 
 
 ## Prerequisites to Use
 
-- Windows 11
-- Steam Accout Open
-- Elden Ring Game buyed in library
-- Elden Ring Game intalled
+- Elden Ring Game in Steam library and installed
 - Internet connection 
 
 ## Prerequisites to Compile
 
 - Windows PowerShell Admin
-- Win-PS2EXE intalled
-- Internet connection
 
 ## How Use
    Double click in .exe file or execute it
