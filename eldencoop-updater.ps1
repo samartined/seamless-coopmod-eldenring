@@ -20,7 +20,12 @@ function Initialize-Config {
         $defaultConfig | ConvertTo-Json | Set-Content -Path $configFileName
         return $defaultConfig
     } else {
-        return Get-Content -Path $configFileName | ConvertFrom-Json
+        $config = Get-Content -Path $configFileName | ConvertFrom-Json
+        $configHashTable = @{}
+        foreach ($key in $config.PSObject.Properties.Name) {
+            $configHashTable[$key] = $config.$key
+        }
+        return $configHashTable
     }
 }
 
@@ -122,6 +127,10 @@ function Update-Version {
         $config.Version = $version
         Save-Config -config $config -configFileName $configFileName
 
+        $shortcutName = "EldenCoop$version.lnk"
+        $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), $shortcutName)
+        Create-Shortcut -targetPath "$gamePath\ersc_launcher.exe" -shortcutPath $desktopPath -startInPath $gamePath -iconPath "$gamePath\ersc_launcher.exe"
+
         Show-MessageBox -message "Updated to version: $version." -caption "Update Successful" -icon Information
     } catch {
         Show-MessageBox -message "An error occurred: $_" -caption "Update Failed" -icon Error
@@ -206,6 +215,21 @@ function Update-SettingsFile {
     $settingsContent = Get-Content -Path $filePath
     $updatedContent = $settingsContent -replace '(cooppassword\s*=\s*).*', "cooppassword = $password"
     Set-Content -Path $filePath -Value $updatedContent
+}
+
+function Create-Shortcut {
+    param (
+        [string]$targetPath,
+        [string]$shortcutPath,
+        [string]$startInPath,
+        [string]$iconPath
+    )
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = $targetPath
+    $shortcut.WorkingDirectory = $startInPath
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
 }
 
 function Show-MessageBox {
