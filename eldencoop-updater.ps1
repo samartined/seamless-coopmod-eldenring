@@ -43,16 +43,19 @@ function Show-MainMenu {
         [string]$configFileName
     )
     Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "EldenCoop Configuration"
-    $form.Size = New-Object System.Drawing.Size(400, 200)
+    $form.Size = New-Object System.Drawing.Size(450, 240)
     $form.StartPosition = "CenterScreen"
-    
+    $form.BackColor = [System.Drawing.Color]::FromArgb(240, 248, 255)
+
     $labelGamePath = New-Object System.Windows.Forms.Label
     $labelGamePath.Text = "Game Path:"
-    $labelGamePath.Size = New-Object System.Drawing.Size(350, 20)
+    $labelGamePath.Size = New-Object System.Drawing.Size(100, 20)
     $labelGamePath.Location = New-Object System.Drawing.Point(20, 20)
+    $labelGamePath.ForeColor = [System.Drawing.Color]::Navy
     $form.Controls.Add($labelGamePath)
     
     $textboxGamePath = New-Object System.Windows.Forms.TextBox
@@ -63,8 +66,10 @@ function Show-MainMenu {
     
     $buttonBrowse = New-Object System.Windows.Forms.Button
     $buttonBrowse.Text = "Browse..."
-    $buttonBrowse.Size = New-Object System.Drawing.Size(50, 20)
+    $buttonBrowse.Size = New-Object System.Drawing.Size(75, 20)
     $buttonBrowse.Location = New-Object System.Drawing.Point(330, 50)
+    $buttonBrowse.BackColor = [System.Drawing.Color]::LightSteelBlue
+    $buttonBrowse.ForeColor = [System.Drawing.Color]::Navy
     $buttonBrowse.Add_Click({
         $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
         if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -75,8 +80,9 @@ function Show-MainMenu {
     
     $labelServerPassword = New-Object System.Windows.Forms.Label
     $labelServerPassword.Text = "Server Password:"
-    $labelServerPassword.Size = New-Object System.Drawing.Size(350, 20)
+    $labelServerPassword.Size = New-Object System.Drawing.Size(120, 20)
     $labelServerPassword.Location = New-Object System.Drawing.Point(20, 80)
+    $labelServerPassword.ForeColor = [System.Drawing.Color]::Navy
     $form.Controls.Add($labelServerPassword)
     
     $textboxServerPassword = New-Object System.Windows.Forms.TextBox
@@ -89,6 +95,8 @@ function Show-MainMenu {
     $buttonUpdate.Text = "Update"
     $buttonUpdate.Size = New-Object System.Drawing.Size(75, 23)
     $buttonUpdate.Location = New-Object System.Drawing.Point(20, 140)
+    $buttonUpdate.BackColor = [System.Drawing.Color]::LightSkyBlue
+    $buttonUpdate.ForeColor = [System.Drawing.Color]::Navy
     $buttonUpdate.Add_Click({
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
@@ -101,13 +109,23 @@ function Show-MainMenu {
     $buttonPlay.Text = "Play"
     $buttonPlay.Size = New-Object System.Drawing.Size(75, 23)
     $buttonPlay.Location = New-Object System.Drawing.Point(110, 140)
+    $buttonPlay.BackColor = [System.Drawing.Color]::CornflowerBlue
+    $buttonPlay.ForeColor = [System.Drawing.Color]::White
     $buttonPlay.Add_Click({
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
         Save-Config -config $config -configFileName $configFileName
+        Update-SettingsFile -filePath "$($config.GamePath)\SeamlessCoop\ersc_settings.ini" -password $config.ServerPassword
         Play-Game -gamePath $textboxGamePath.Text
     })
     $form.Controls.Add($buttonPlay)
+
+    $labelVersion = New-Object System.Windows.Forms.Label
+    $labelVersion.Text = "Version: " + $config.Version
+    $labelVersion.Size = New-Object System.Drawing.Size(400, 20)
+    $labelVersion.Location = New-Object System.Drawing.Point(20, 170)
+    $labelVersion.ForeColor = [System.Drawing.Color]::Navy
+    $form.Controls.Add($labelVersion)
     
     $form.ShowDialog() | Out-Null
 }
@@ -159,7 +177,7 @@ function Play-Game {
     }
 
     try {
-        Start-Process -FilePath $steamPath
+        Start-Process -FilePath $steamPath -ArgumentList '-silent', '-background'
         Start-Sleep -Seconds 10
         Start-Process -FilePath "$gamePath\ersc_launcher.exe" -WorkingDirectory $gamePath
     } catch {
