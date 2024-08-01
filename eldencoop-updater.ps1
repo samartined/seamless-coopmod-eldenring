@@ -1,36 +1,26 @@
 function Main {
     Add-Type -AssemblyName System.Windows.Forms
-    $DebugPreference = "Continue"
-    
-    $configFileName = ".\eldencoop2.json"
+    $configFileName = [System.IO.Path]::Combine($env:USERPROFILE, "eldencoop", "config.json")
     $config = Initialize-Config -configFileName $configFileName
     
-    if (-not $config.GamePath) {
-        $config.GamePath = Show-GamePathForm
-        if ($config.GamePath) {
-            Save-Config -config $config -configFileName $configFileName
-        } else {
-            Write-Output "Game path selection was canceled or no path was entered."
-            return
-        }
-    }
-    
-    Update-Version -serverPassword $config.ServerPassword -gamePath $config.GamePath
-    Execute-Game -gamePath $config.GamePath
+    Show-MainMenu -config $config -configFileName $configFileName
 }
 
 function Initialize-Config {
     param ([string]$configFileName)
     
     $defaultConfig = @{
-        ServerPassword = "123456Pi."
         GamePath = "C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game"
+        ServerPassword = "123456Pi."
+        Version = "1.0"
     }
-    
-    if (Test-Path $configFileName) {
-        return Get-Content -Path $configFileName | ConvertFrom-Json
-    } else {
+
+    if (-Not (Test-Path $configFileName)) {
+        New-Item -ItemType Directory -Path (Split-Path $configFileName) -Force | Out-Null
+        $defaultConfig | ConvertTo-Json | Set-Content -Path $configFileName
         return $defaultConfig
+    } else {
+        return Get-Content -Path $configFileName | ConvertFrom-Json
     }
 }
 
@@ -42,12 +32,17 @@ function Save-Config {
     $config | ConvertTo-Json | Set-Content -Path $configFileName
 }
 
-function Show-GamePathForm {
+function Show-MainMenu {
+    param (
+        [hashtable]$config,
+        [string]$configFileName
+    )
     Add-Type -AssemblyName System.Windows.Forms
 
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "Select Game Path"
-    $form.Size = New-Object System.Drawing.Size(400, 250)
+    $form.Text = "EldenCoop Configuration"
+    $form.Size = New-Object System.Drawing.Size(400, 200)
+    $form.StartPosition = "CenterScreen"
     
     $labelGamePath = New-Object System.Windows.Forms.Label
     $labelGamePath.Text = "Game Path:"
@@ -56,76 +51,58 @@ function Show-GamePathForm {
     $form.Controls.Add($labelGamePath)
     
     $textboxGamePath = New-Object System.Windows.Forms.TextBox
+    $textboxGamePath.Text = $config.GamePath
     $textboxGamePath.Size = New-Object System.Drawing.Size(350, 20)
     $textboxGamePath.Location = New-Object System.Drawing.Point(20, 50)
     $form.Controls.Add($textboxGamePath)
     
-    $buttonBrowse = New-Object System.Windows.Forms.Button
-    $buttonBrowse.Text = "Browse"
-    $buttonBrowse.Size = New-Object System.Drawing.Size(75, 23)
-    $buttonBrowse.Location = New-Object System.Drawing.Point(20, 80)
-    $form.Controls.Add($buttonBrowse)
+    $labelServerPassword = New-Object System.Windows.Forms.Label
+    $labelServerPassword.Text = "Server Password:"
+    $labelServerPassword.Size = New-Object System.Drawing.Size(350, 20)
+    $labelServerPassword.Location = New-Object System.Drawing.Point(20, 80)
+    $form.Controls.Add($labelServerPassword)
     
-    $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
-    $buttonBrowse.Add_Click({
-        if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $textboxGamePath.Text = $folderBrowser.SelectedPath
-        }
+    $textboxServerPassword = New-Object System.Windows.Forms.TextBox
+    $textboxServerPassword.Text = $config.ServerPassword
+    $textboxServerPassword.Size = New-Object System.Drawing.Size(350, 20)
+    $textboxServerPassword.Location = New-Object System.Drawing.Point(20, 110)
+    $form.Controls.Add($textboxServerPassword)
+    
+    $buttonUpdate = New-Object System.Windows.Forms.Button
+    $buttonUpdate.Text = "Update"
+    $buttonUpdate.Size = New-Object System.Drawing.Size(75, 23)
+    $buttonUpdate.Location = New-Object System.Drawing.Point(20, 140)
+    $buttonUpdate.Add_Click({
+        $config.GamePath = $textboxGamePath.Text
+        $config.ServerPassword = $textboxServerPassword.Text
+        Save-Config -config $config -configFileName $configFileName
+        Update-Version -config $config -configFileName $configFileName
     })
+    $form.Controls.Add($buttonUpdate)
     
-    $labelServerName = New-Object System.Windows.Forms.Label
-    $labelServerName.Text = "Server name:"
-    $labelServerName.Size = New-Object System.Drawing.Size(350, 20)
-    $labelServerName.Location = New-Object System.Drawing.Point(20, 120)
-    $form.Controls.Add($labelServerName)
-    
-    $textboxServerName = New-Object System.Windows.Forms.TextBox
-    $textboxServerName.Text = "MyServername"
-    $textboxServerName.ForeColor = [System.Drawing.Color]::Gray
-    $textboxServerName.Size = New-Object System.Drawing.Size(350, 20)
-    $textboxServerName.Location = New-Object System.Drawing.Point(20, 150)
-    $form.Controls.Add($textboxServerName)
-    
-    $textboxServerName.Add_GotFocus({
-        if ($textboxServerName.Text -eq "MyServername") {
-            $textboxServerName.Text = ""
-            $textboxServerName.ForeColor = [System.Drawing.Color]::Black
-        }
+    $buttonPlay = New-Object System.Windows.Forms.Button
+    $buttonPlay.Text = "Play"
+    $buttonPlay.Size = New-Object System.Drawing.Size(75, 23)
+    $buttonPlay.Location = New-Object System.Drawing.Point(110, 140)
+    $buttonPlay.Add_Click({
+        $config.GamePath = $textboxGamePath.Text
+        $config.ServerPassword = $textboxServerPassword.Text
+        Save-Config -config $config -configFileName $configFileName
+        Play-Game -gamePath $textboxGamePath.Text
     })
+    $form.Controls.Add($buttonPlay)
     
-    $textboxServerName.Add_LostFocus({
-        if ($textboxServerName.Text -eq "") {
-            $textboxServerName.Text = "MyServername"
-            $textboxServerName.ForeColor = [System.Drawing.Color]::Gray
-        }
-    })
-    
-    $okButton = New-Object System.Windows.Forms.Button
-    $okButton.Text = "OK"
-    $okButton.Size = New-Object System.Drawing.Size(75, 23)
-    $okButton.Location = New-Object System.Drawing.Point(295, 180)
-    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $form.Controls.Add($okButton)
-    
-    $form.AcceptButton = $okButton
-    $form.StartPosition = "CenterScreen"
-    $result = $form.ShowDialog()
-    
-    if ($result -eq [System.Windows.Forms.DialogResult]::OK -and $textboxGamePath.Text -ne "") {
-        return $textboxGamePath.Text
-    } else {
-        return $null
-    }
+    $form.ShowDialog() | Out-Null
 }
 
 function Update-Version {
     param (
-        [string]$serverPassword,
-        [string]$gamePath
+        [hashtable]$config,
+        [string]$configFileName
     )
     try {
-        $destPath = $gamePath
-        $seamlessCoopPath = "$destPath\SeamlessCoop"
+        $gamePath = $config.GamePath
+        $seamlessCoopPath = "$gamePath\SeamlessCoop"
         $settingsFilePath = "$seamlessCoopPath\ersc_settings.ini"
         $apiUrl = "https://api.github.com/repos/LukeYui/EldenRingSeamlessCoopRelease/releases/latest"
         $tempZipPath = "$env:TEMP\ersc.zip"
@@ -137,34 +114,35 @@ function Update-Version {
 
         Download-File -url $downloadUrl -outputPath $tempZipPath
         Extract-ZipFile -zipPath $tempZipPath -extractPath $tempExtractPath
-        Copy-File -source "$tempExtractPath\ersc_launcher.exe" -destination "$destPath\ersc_launcher.exe"
+        Copy-File -source "$tempExtractPath\ersc_launcher.exe" -destination "$gamePath\ersc_launcher.exe"
         Copy-Folder -source "$tempExtractPath\SeamlessCoop" -destination $seamlessCoopPath
 
-        Update-SettingsFile -filePath $settingsFilePath -password $serverPassword
+        Update-SettingsFile -filePath $settingsFilePath -password $config.ServerPassword
 
-        $shortcutName = "EldenCoop$version.lnk"
-        $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), $shortcutName)
-        Create-Shortcut -targetPath "$destPath\ersc_launcher.exe" -shortcutPath $desktopPath -startInPath $destPath
+        $config.Version = $version
+        Save-Config -config $config -configFileName $configFileName
 
-        Show-MessageBox -message "Updated to version: $version.`nStart game" -caption "Starting Server: $serverPassword" -icon Information
+        Show-MessageBox -message "Updated to version: $version." -caption "Update Successful" -icon Information
     } catch {
-        Show-MessageBox -message "An unexpected error occurred: $_" -caption "Starting Server: $serverPassword" -icon Error
+        Show-MessageBox -message "An error occurred: $_" -caption "Update Failed" -icon Error
     }
 }
 
-function Execute-Game {
+function Play-Game {
     param ([string]$gamePath)
     
-    $gameExecutable = "$gamePath\ersc_launcher.exe"
-    if (-Not (Test-Path $gameExecutable)) {
-        Write-Output "Game executable not found at $gameExecutable"
+    $steamPath = "C:\Program Files (x86)\Steam\Steam.exe"
+    if (-Not (Test-Path $steamPath)) {
+        Show-MessageBox -message "Steam is not installed at $steamPath" -caption "Error" -icon Error
         return
     }
 
     try {
-        Start-Process -FilePath $gameExecutable -WorkingDirectory $gamePath
+        Start-Process -FilePath $steamPath
+        Start-Sleep -Seconds 10
+        Start-Process -FilePath "$gamePath\ersc_launcher.exe" -WorkingDirectory $gamePath
     } catch {
-        Write-Error "Failed to start the game: $_"
+        Show-MessageBox -message "Failed to start the game: $_" -caption "Error" -icon Error
     }
 }
 
@@ -228,19 +206,6 @@ function Update-SettingsFile {
     $settingsContent = Get-Content -Path $filePath
     $updatedContent = $settingsContent -replace '(cooppassword\s*=\s*).*', "cooppassword = $password"
     Set-Content -Path $filePath -Value $updatedContent
-}
-
-function Create-Shortcut {
-    param (
-        [string]$targetPath,
-        [string]$shortcutPath,
-        [string]$startInPath
-    )
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = $targetPath
-    $shortcut.WorkingDirectory = $startInPath
-    $shortcut.Save()
 }
 
 function Show-MessageBox {
