@@ -115,6 +115,11 @@ function Show-MainMenu {
         $config.GamePath = $textboxGamePath.Text
         $config.ServerPassword = $textboxServerPassword.Text
         Save-Config -config $config -configFileName $configFileName
+
+        if ($config.Version -eq "-1") {
+            Update-Version -config $config -configFileName $configFileName -labelVersion $labelVersion
+        }
+
         Update-SettingsFile -filePath "$($config.GamePath)\SeamlessCoop\ersc_settings.ini" -password $config.ServerPassword
         Play-Game -gamePath $textboxGamePath.Text
     })
