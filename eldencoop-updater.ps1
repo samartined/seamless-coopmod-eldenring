@@ -122,6 +122,9 @@ function Show-MainMenu {
 
         Update-SettingsFile -filePath "$($config.GamePath)\SeamlessCoop\ersc_settings.ini" -password $config.ServerPassword
         Play-Game -gamePath $textboxGamePath.Text
+
+        # Close the form after starting the game
+        $form.Close()
     })
     $form.Controls.Add($buttonPlay)
 
