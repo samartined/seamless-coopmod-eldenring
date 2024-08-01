@@ -187,7 +187,7 @@ function Play-Game {
 
     try {
         Start-Process -FilePath $steamPath -ArgumentList '-silent', '-background'
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 5
         Start-Process -FilePath "$gamePath\ersc_launcher.exe" -WorkingDirectory $gamePath
     } catch {
         Show-MessageBox -message "Failed to start the game: $_" -caption "Error" -icon Error
